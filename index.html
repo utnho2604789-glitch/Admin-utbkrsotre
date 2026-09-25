@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTBKR STORE - Admin Server</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center text-white font-bold text-xl">A</div>
+                <div>
+                    <h1 class="font-bold text-lg text-white">SERVER QUẢN TRỊ ADMIN</h1>
+                    <p class="text-xs text-slate-400">Điều khiển và gửi nội dung/file tự động</p>
+                </div>
+            </div>
+            <span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs px-3 py-1 rounded-full font-medium">Admin Tối Cao</span>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+                <p class="text-xs text-slate-400 uppercase">Yêu cầu nạp tiền chờ duyệt</p>
+                <h3 id="statTopup" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+                <p class="text-xs text-slate-400 uppercase">Đơn hàng chờ gửi nội dung/file</p>
+                <h3 id="statOrders" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+                <p class="text-xs text-slate-400 uppercase">Tổng sản phẩm kho</p>
+                <h3 id="statProd" class="text-2xl font-bold text-white mt-1">0</h3>
+            </div>
+        </div>
+
+        <!-- Quản lý đơn hàng & Gửi file -->
+        <div class="space-y-4">
+            <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-cart-shopping text-blue-400 mr-2"></i>Quản lý Đơn Hàng & Gửi Văn Bản / Tệp File</h3>
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="p-3">Khách hàng</th>
+                            <th class="p-3">Sản phẩm</th>
+                            <th class="p-3">Trạng thái</th>
+                            <th class="p-3 text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminOrderTable" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quản lý Sản Phẩm -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-box text-rose-500 mr-2"></i>Quản Lý Sản Phẩm</h3>
+                <button onclick="openModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">Thêm sản phẩm mới</button>
+            </div>
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="p-3">Ảnh</th>
+                            <th class="p-3">Tên</th>
+                            <th class="p-3">Giá</th>
+                            <th class="p-3">Kho</th>
+                            <th class="p-3 text-right">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminProdTable" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Duyệt Nạp Tiền -->
+        <div class="space-y-4">
+            <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-money-bill-transfer text-amber-400 mr-2"></i>Duyệt Nạp Tiền Techcombank</h3>
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="p-3">Mã GD</th>
+                            <th class="p-3">Số tiền</th>
+                            <th class="p-3">Trạng thái</th>
+                            <th class="p-3 text-right">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTopupTable" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Thêm Sản Phẩm -->
+    <div id="prodModal" class="fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-xl font-bold">Thêm sản phẩm</h3>
+            <form onsubmit="saveProd(event)" class="space-y-3 text-sm">
+                <input type="text" id="pName" placeholder="Tên sản phẩm" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white">
+                <input type="number" id="pPrice" placeholder="Giá tiền" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white">
+                <input type="number" id="pStock" placeholder="Số lượng kho" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white">
+                <input type="url" id="pImg" placeholder="Link hình ảnh URL" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white">
+                <textarea id="pDesc" placeholder="Mô tả" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white"></textarea>
+                <button type="submit" class="w-full bg-rose-600 text-white py-2.5 rounded-xl font-semibold">Lưu sản phẩm</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let db = {
+            products: JSON.parse(localStorage.getItem('utbkr_products')) || [],
+            topup: JSON.parse(localStorage.getItem('utbkr_topup')) || [],
+            orders: JSON.parse(localStorage.getItem('utbkr_orders')) || []
+        };
+
+        function renderAdmin() {
+            document.getElementById('statProd').innerText = db.products.length;
+            document.getElementById('statTopup').innerText = db.topup.filter(x => x.status === 'pending').length;
+            document.getElementById('statOrders').innerText = db.orders.filter(x => x.status === 'pending').length;
+
+            let pTable = document.getElementById('adminProdTable');
+            pTable.innerHTML = '';
+            db.products.forEach(p => {
+                pTable.innerHTML += `
+                    <tr class="hover:bg-slate-800/50">
+                        <td class="p-3"><img src="${p.image}" class="w-10 h-10 rounded object-cover border border-slate-700"></td>
+                        <td class="p-3 font-bold text-white">${p.name}</td>
+                        <td class="p-3 text-rose-400">${p.price.toLocaleString()}đ</td>
+                        <td class="p-3">${p.stock}</td>
+                        <td class="p-3 text-right"><button onclick="delProd('${p.id}')" class="bg-rose-900/40 text-rose-400 px-2 py-1 rounded text-xs"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            let oTable = document.getElementById('adminOrderTable');
+            oTable.innerHTML = '';
+            if (db.orders.length === 0) {
+                oTable.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Chưa có đơn hàng nào</td></tr>`;
+            } else {
+                db.orders.forEach(o => {
+                    let st = o.status === 'completed' ? `<span class="text-emerald-400 text-xs">Đã gửi</span>` : `<span class="text-amber-400 text-xs">Chờ gửi nội dung/file</span>`;
+                    oTable.innerHTML += `
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-3 text-white">${o.userName}</td>
+                            <td class="p-3 text-blue-300">${o.productName}</td>
+                            <td class="p-3">${st}</td>
+                            <td class="p-3 text-right"><button onclick="openDeliveryModal('${o.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-semibold">Gửi Nội Dung / File</button></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            let tTable = document.getElementById('adminTopupTable');
+            tTable.innerHTML = '';
+            db.topup.forEach(t => {
+                let act = t.status === 'pending' ? `<button onclick="approve('${t.id}')" class="bg-emerald-600 text-white px-3 py-1 rounded text-xs">Duyệt</button>` : `<span class="text-slate-500 text-xs">Xong</span>`;
+                tTable.innerHTML += `
+                    <tr class="hover:bg-slate-800/50">
+                        <td class="p-3 font-mono text-amber-400">${t.memo}</td>
+                        <td class="p-3 text-emerald-400 font-bold">+${t.amount.toLocaleString()}đ</td>
+                        <td class="p-3">${t.status}</td>
+                        <td class="p-3 text-right">${act}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openModal() { document.getElementById('prodModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('prodModal').classList.add('hidden'); }
+
+        async function openDeliveryModal(id) {
+            let order = db.orders.find(x => x.id === id);
+            const { value: formValues } = await Swal.fire({
+                title: 'Gửi nội dung / file cho khách',
+                html: `
+                    <textarea id="swal-text" class="swal2-textarea !bg-slate-800 !text-white !border-slate-700" placeholder="Nội dung văn bản (Tài khoản/Mật khẩu)"></textarea>
+                    <input id="swal-fileurl" class="swal2-input !bg-slate-800 !text-white !border-slate-700 text-sm" placeholder="Link tệp file (Google Drive...)">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Gửi ngay',
+                preConfirm: () => [document.getElementById('swal-text').value, document.getElementById('swal-fileurl').value]
+            });
+            if (formValues) {
+                order.deliveryText = formValues[0];
+                order.deliveryFile = formValues[1];
+                order.status = 'completed';
+                localStorage.setItem('utbkr_orders', JSON.stringify(db.orders));
+                renderAdmin();
+                Swal.fire('Thành công', 'Đã gửi cho khách hàng!', 'success');
+            }
+        }
+
+        function saveProd(e) {
+            e.preventDefault();
+            db.products.push({
+                id: 'P_' + Date.now(),
+                name: document.getElementById('pName').value,
+                price: parseInt(document.getElementById('pPrice').value),
+                stock: parseInt(document.getElementById('pStock').value),
+                image: document.getElementById('pImg').value,
+                desc: document.getElementById('pDesc').value
+            });
+            localStorage.setItem('utbkr_products', JSON.stringify(db.products));
+            closeModal();
+            renderAdmin();
+            Swal.fire('Thành công', 'Đã thêm sản phẩm!', 'success');
+        }
+
+        function delProd(id) {
+            db.products = db.products.filter(x => x.id !== id);
+            localStorage.setItem('utbkr_products', JSON.stringify(db.products));
+            renderAdmin();
+        }
+
+        function approve(id) {
+            let t = db.topup.find(x => x.id === id);
+            t.status = 'approved';
+            let accounts = JSON.parse(localStorage.getItem('utbkr_accounts')) || [];
+            let acc = accounts.find(x => x.id === t.userId);
+            if(acc) {
+                acc.balance += t.amount;
+                localStorage.setItem('utbkr_accounts', JSON.stringify(accounts));
+                let curr = JSON.parse(localStorage.getItem('utbkr_current_user'));
+                if(curr && curr.id === acc.id) {
+                    curr.balance = acc.balance;
+                    localStorage.setItem('utbkr_current_user', JSON.stringify(curr));
+                }
+            }
+            localStorage.setItem('utbkr_topup', JSON.stringify(db.topup));
+            renderAdmin();
+            Swal.fire('Đã duyệt', 'Cộng tiền thành công!', 'success');
+        }
+
+        window.onload = () => { renderAdmin(); };
+    </script>
+</body>
+</html>
